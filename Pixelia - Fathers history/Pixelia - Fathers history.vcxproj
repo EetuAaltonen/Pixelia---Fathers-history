@@ -144,6 +144,14 @@
   <ItemGroup>
     <ClCompile Include="start.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\eetua_000\Desktop\dirent.h" />
+    <ClInclude Include="dirent.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Pixelia - Fathers history.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
