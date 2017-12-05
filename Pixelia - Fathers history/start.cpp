@@ -7,12 +7,18 @@
 #include <algorithm>
 #include <vector>
 #include <list>
+#include <sstream>
 
 #include <sys/types.h>
 #include "dirent.h"
 
 using namespace std;
 using namespace System;
+
+struct Skill {
+	string name;
+	int level;
+};
 
 struct Item {
 	string name;
@@ -23,6 +29,25 @@ struct Item {
 	double price;
 	string effect;
 	int effect_amount;
+};
+
+struct Player {
+	string name;
+	string clss;
+
+	vector <Skill> skills;
+	list <string> spells;
+	list <Item> inventory;
+
+	string activeQuest;
+	list <string> incompletedQuests;
+	list <string> completedQuests;
+	list <string> factions;
+
+	int health;
+	int stamina;
+	int mana;
+	int bounty;
 };
 
 /*-----Console-Initialize-----*/
@@ -43,10 +68,10 @@ void createSave(vector <string>);
 bool saveExists(string, vector <string>);
 /*-----Save-&-Load-----*/
 void loadGame(string);
-void saveGame(string);
+void saveGame(string, Player*);
 /*-----In-Game-----*/
 //Run Game
-void runGame(string);
+void runGame(string, Player*);
 //Header Menu
 void printHeaderMenu(string[]);
 //Maps
@@ -56,12 +81,12 @@ void printMapEast(string []);
 void printMapSouth(string []);
 void printMapWest(string []);
 //Inventory
-void inventoryView();
-void addToInventory(Item);
+void inventoryView(Player*);
+void addToInventory(Item, Player*);
 //Fishing
-void fishing();
+void fishing(Player*);
 //Mine Iron
-void mineIron();
+void mineIron(Player*);
 
 #define KEY_UP 72
 #define KEY_DOWN 80
@@ -70,10 +95,10 @@ void mineIron();
 #define KEY_ENTER 13
 
 string PATH;
-list <Item> INVENTORY;
+string DATASTRUCTURE[] = { "name:","clss:","skills:","spells:","/spells","inventory:","/inventory","activeQuest:",
+							"incompletedQuests:","completedQuests:" };
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	string path(argv[0]);
 	size_t pos = path.find_last_of("\\/");
 	PATH = path.substr(0, pos);
@@ -162,6 +187,7 @@ void mainMenu() {
 	string opt[max];
 	bool menuLoop = true;
 	int indx = 0, tempIndx;
+
 	for (int i = 0; i < max; i++) {
 		opt[i] = "  ";
 	}
@@ -308,7 +334,7 @@ void createSave(vector <string> saves) {
 			saveName += ".sav";
 			if (!saveExists(saveName, saves)) {
 				ofstream file(PATH + "/" + saveName);
-				file << "New save" << endl;
+				file << "New empty save" << endl;
 				file.close();
 				cout << saveName << " created." << endl;
 				setName = false;
@@ -332,15 +358,108 @@ bool saveExists(string saveName, vector <string> saves) {
 	return false;
 }
 
-void loadGame(string saveName) {
+void saveGame(string saveName, Player * player) {
+	string tmpName;
 	system("cls");
-	cout << saveName << " loaded!" << endl;
-	Sleep(500);
-	runGame(saveName);
-	saveGame(saveName);
+	cout << "Saving..." << endl;
+	ofstream file(PATH + "/" + saveName);
+	//Character Name
+	file << "name:" << "Dragonborn" << endl;
+	file << "clss:" << "Nord" << endl;
+	//Skills
+	file << "skills:" << "empty" << endl;
+	//Inventory
+	file << "inventory:" << endl;
+	for (Item item : (player->inventory)) {
+		tmpName = item.name;
+		replace(tmpName.begin(), tmpName.end(), ' ', '_');
+		file << tmpName << "," << item.type << "," << item.count << "," << item.durability << ","
+			<< item.weight << "," << item.price << "," << item.effect << "," << item.effect_amount << endl;
+	}
+	file << "/inventory" << endl;
+	/*
+	Item {
+	string name;
+	string type;
+	int count;
+	int durability;
+	double weight;
+	double price;
+	string effect;
+	int effect_amount;
+	};
+	*/
+	//Quests
+	file << "activeQuest:" << "empty" << endl;
+	file << "incompletedQuests:" << "empty" << endl;
+	file << "completedQuests: " << "empty" << endl;
+	file.close();
+	cout << saveName << " saved." << endl;
+	Sleep(1000);
 }
 
-void runGame(string saveName) {
+void loadGame(string saveName) {
+	int indx = 0;
+	vector <string> data;
+	size_t pos;
+	string line = "";
+	Player *player = new Player();
+	Item item;
+	system("cls");
+	ifstream file;
+	file.open(PATH + "/" + saveName);
+	while (!file.eof()) {
+		getline(file, line);
+		replace(line.begin(), line.end(), '_', ' ');
+		pos = line.find(DATASTRUCTURE[indx]);
+		if (pos != string::npos) {
+			if (line != DATASTRUCTURE[indx]) {
+				line.replace(pos, DATASTRUCTURE[indx].length(), "");
+				replace(line.begin(), line.end(), ' ', '_');
+				cout << line << endl;
+			}
+			indx++;
+		} else if (DATASTRUCTURE[indx] == "/spells") {
+			if (line != DATASTRUCTURE[indx]) {
+				cout << "Spell found!" << endl;
+			} else {
+				indx++;
+			}
+		} else if (DATASTRUCTURE[indx] == "/inventory") {
+			if (line != DATASTRUCTURE[indx]) {
+				string value;
+				istringstream substring(line);
+				while (getline(substring, value, ',')) {
+					data.push_back(value);
+					cout << value << endl;
+				}
+				item.name = data[0];
+				item.type = data[1];
+				item.count = stoi(data[2]);
+				item.durability = stoi(data[3]);
+				item.weight = stod(data[4]);
+				item.price = stod(data[5]);
+				item.effect = data[6];
+				item.effect_amount = stoi(data[7]);
+				addToInventory(item, player);
+				data.clear();
+			} else {
+				indx++;
+			}
+		} else if (line == "") {
+			cout << "NULL" << endl;
+			indx++;
+		}
+	}
+	file.close();
+	cout << saveName << " loaded!" << endl;
+	cin.get();
+	Sleep(500);
+	runGame(saveName, player);
+	saveGame(saveName, player);
+}
+
+void runGame(string saveName, Player* player) {
 	bool gameRunning = true;
 	int indx = 0;
 	int selection[2];
@@ -353,7 +472,7 @@ void runGame(string saveName) {
 		if (selection[0] == -1) {
 			switch (selection[1]) {
 				case 0: {
-					inventoryView();
+					inventoryView(player);
 				}break;
 				case 1: {
 					//Character
@@ -362,7 +481,7 @@ void runGame(string saveName) {
 					//Quests
 				}break;
 				case 3: {
-					saveGame(saveName);
+					saveGame(saveName, player);
 				}break;
 				case 4: {
 					gameRunning = false;
@@ -375,10 +494,10 @@ void runGame(string saveName) {
 					switch (selection[1]) { //selectionIndx;
 						//(offset + North,East,South,West) --> X
 						case 9: {
-							fishing();
+							fishing(player);
 						}break;
 						case 10: {
-							mineIron();
+							mineIron(player);
 						}break;
 					}
 				}break;
@@ -396,13 +515,13 @@ void runGame(string saveName) {
 	} while (gameRunning);
 }
 
-void fishing() {
+void fishing(Player* player) {
 	int rndNum = (rand() % 3); //0-3
 	system("cls");
 	cout << "Your change (%) was " << rndNum << endl;
 	if (rndNum > 0) {
 		Item fish = { "Fish", "ingredient", rndNum, 100, 0.3, 25, "heal", 10 };
-		addToInventory(fish);
+		addToInventory(fish, player);
 		cout << "You catch " << rndNum << " fish/es!" << endl;
 	} else {
 		cout << "You got nothing." << endl;
@@ -410,13 +529,13 @@ void fishing() {
 	Sleep(1000);
 }
 
-void mineIron() {
+void mineIron(Player* player) {
 	int rndNum = (rand() % 3); //0-3
 	system("cls");
 	cout << "Your change (%) was " << rndNum << endl;
 	if (rndNum > 0) {
 		Item ironOre = { "Iron Ore", "material", rndNum, 100, 0.3, 110, "none", 0 };
-		addToInventory(ironOre);
+		addToInventory(ironOre, player);
 		cout << "You mine " << rndNum << " ore/s!" << endl;
 	} else {
 		cout << "You got nothing." << endl;
@@ -425,15 +544,15 @@ void mineIron() {
 	
 }
 
-void addToInventory(Item item) {
+void addToInventory(Item item, Player* player) {
 	typedef list<Item> Cont;
 	bool exists = false;
-	if (INVENTORY.size() > 0) {
-		for (Cont::iterator i = INVENTORY.begin(); i != INVENTORY.end(); ++i) {
+	if ((player->inventory).size() > 0) {
+		for (Cont::iterator i = (player->inventory).begin(); i != (player->inventory).end(); ++i) {
 			Item &elem(*i);
 			if (elem.name == item.name) {
 				if (elem.count + item.count <= 0) {
-					INVENTORY.erase(i);
+					(player->inventory).erase(i);
 				} else {
 					elem.count += item.count;
 				}
@@ -443,13 +562,12 @@ void addToInventory(Item item) {
 		}
 	}
 	if (!exists) {
-		INVENTORY.push_back(item);
+		(player->inventory).push_back(item);
 	}
-	//INVENTORY.sort();
 }
 
-void inventoryView() {
-	int max = (static_cast<int>(INVENTORY.size())) + 1;
+void inventoryView(Player* player) {
+	int max = (static_cast<int>((player->inventory).size())) + 1;
 	string * opt;
 	opt = new (nothrow) string[max];
 	bool invLoop = true;
@@ -466,7 +584,7 @@ void inventoryView() {
 		cout << "Exit" << opt[0] << endl;
 		if (max > 1) {
 			a = 0;
-			for (Item item : INVENTORY) {
+			for (Item item : (player->inventory)) {
 				cout << "Name: " << item.name << " | Count: " << item.count << " " << opt[a + 1] << endl;
 				tempItems[a++] = item.name;
 			}
@@ -486,8 +604,8 @@ void inventoryView() {
 					cin >> removeCount;
 					if (removeCount > 0) {
 						Item decreaseItem = { tempItems[indx - 1], "", (removeCount*(-1)), 0, 0, 0, "", 0 };
-						addToInventory(decreaseItem);
-						max = (static_cast<int>(INVENTORY.size())) + 1;
+						addToInventory(decreaseItem, player);
+						max = (static_cast<int>((player->inventory).size())) + 1;
 						//If inventory is empty after drop
 						if (max == 1 || indx >= max) {
 							indx = max-1;
@@ -500,29 +618,6 @@ void inventoryView() {
 		}
 	} while (invLoop);
 	delete[] tempItems, opt;
-}
-
-void saveGame(string saveName) {
-	system("cls");
-	cout << "Auto save..." << endl;
-	ofstream file(PATH + "/" + saveName);
-	//Basic Info
-	file << "path: " << PATH << endl;
-	file << "name: " << saveName << endl;
-	//Character Name
-	file << "characterName: " << "Dragonborn" << endl;
-	file << "class: " << "Nord" << endl;
-	//Skills
-	file << "skills: " << "empty" << endl;
-	//Inventory
-	file << "inventory: " << "empty" << endl;
-	//Quests
-	file << "activeQuest: " << "empty" << endl;
-	file << "incompletedQuests: " << "empty" << endl;
-	file << "completedQuests: " << "empty" << endl;
-	file.close();
-	cout << saveName << " saved." << endl;
-	Sleep(1000);
 }
 
 void mapView(int selection[]) {
