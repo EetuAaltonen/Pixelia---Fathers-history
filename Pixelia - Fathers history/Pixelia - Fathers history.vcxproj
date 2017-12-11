@@ -142,11 +142,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="globals.cpp" />
+    <ClCompile Include="map.cpp" />
+    <ClCompile Include="menu.cpp" />
+    <ClCompile Include="rungame.cpp" />
+    <ClCompile Include="saves.cpp" />
     <ClCompile Include="start.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\eetua_000\Desktop\dirent.h" />
     <ClInclude Include="dirent.h" />
+    <ClInclude Include="header.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

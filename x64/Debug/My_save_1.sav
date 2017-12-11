@@ -1,10 +1,8 @@
 name:Dragonborn
 clss:Nord
 skills:empty
-spells:
-/spells
 inventory:
-Fish,ingredient,2,100,0.3,25,heal,10
+Fish,ingredient,14,100,0.3,25,heal,10
 Iron_Ore,material,1,100,0.3,110,none,0
 /inventory
 activeQuest:empty
