@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
 	string path(argv[0]);
 	size_t pos = path.find_last_of("\\/");
 	PATH = path.substr(0, pos);
-	//cout << PATH << endl;
+	cout << PATH << endl;
 	/*size_type pos = string(buffer).find_last_of("\\/");
 	string(buffer).substr(0, pos);*/
 	//cout << argv[0] << endl;

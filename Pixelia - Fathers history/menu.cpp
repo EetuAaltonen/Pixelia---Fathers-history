@@ -116,7 +116,7 @@ void printMainMenu(string opt[]) {
 
 void loadMenu() {
 	vector <string> saves = listSaves();
-	int max = (static_cast<int>(saves.size())) + 2;
+	int max = (static_cast<int>(saves.size())) + 2; //Exit and Create takes 2 first index
 	string * opt;
 	string newSave;
 	opt = new (nothrow) string[max];

@@ -7,13 +7,11 @@ void runGame(string saveName, Player* player) {
 	int selection[2];
 	do {
 		mapView(selection);
-		//Oma switch headerin valikolle!
-		/*case 0: {
-		inventoryView();
-		}break;*/
+		//Header menu options
 		if (selection[0] == -1) {
 			switch (selection[1]) {
 			case 0: {
+				//Inventory
 				inventoryView(player);
 			}break;
 			case 1: {
@@ -23,20 +21,21 @@ void runGame(string saveName, Player* player) {
 				//Quests
 			}break;
 			case 3: {
+				//Save Game
 				saveGame(saveName, player);
 			}break;
 			case 4: {
+				//Save & Exit
 				gameRunning = false;
 			}break;
 			}
-
 		}
 		else {
 			//Header menu takes index 0-4
 			switch (selection[0]) { //mapIndx;
 			case 5: { //North
 				switch (selection[1]) { //selectionIndx;
-										//(offset + North,East,South,West) --> X
+				//(offset + North,East,South,West) --> X
 				case 9: {
 					fishing(player);
 				}break;
@@ -62,7 +61,7 @@ void runGame(string saveName, Player* player) {
 void fishing(Player* player) {
 	int rndNum = (rand() % 3); //0-3
 	system("cls");
-	cout << "Your change (%) was " << rndNum << endl;
+	//cout << "Your change (%) was " << rndNum << endl;
 	if (rndNum > 0) {
 		Item fish = { "Fish", "ingredient", rndNum, 100, 0.3, 25, "heal", 10 };
 		addToInventory(fish, player);
@@ -77,7 +76,7 @@ void fishing(Player* player) {
 void mineIron(Player* player) {
 	int rndNum = (rand() % 3); //0-3
 	system("cls");
-	cout << "Your change (%) was " << rndNum << endl;
+	//cout << "Your change (%) was " << rndNum << endl;
 	if (rndNum > 0) {
 		Item ironOre = { "Iron Ore", "material", rndNum, 100, 0.3, 110, "none", 0 };
 		addToInventory(ironOre, player);
@@ -114,7 +113,7 @@ void addToInventory(Item item, Player* player) {
 }
 
 void inventoryView(Player* player) {
-	int max = (static_cast<int>((player->inventory).size())) + 1;
+	int max = (static_cast<int>((player->inventory).size())) + 1; //Exit takes 1. index
 	string * opt;
 	opt = new (nothrow) string[max];
 	bool invLoop = true;
